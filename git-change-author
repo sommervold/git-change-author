@@ -1,4 +1,4 @@
-#!usr/bin/env bash
+#!/usr/bin/env bash
 
 if [ $# -ne 2 ]; then
     >&2 echo "Usage: $0 <name> <email>"
