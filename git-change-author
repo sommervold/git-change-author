@@ -38,7 +38,7 @@ do
     author_email="${emails[$commit]}"
     author="$author_name <$author_email>"
     {
-    GIT_COMMITTER_NAME="$author_name" GIT_COMMITTER_EMAIL="$author_email" git commit --amend --no-edit --author="$author"
+    GIT_COMMITTER_NAME="$author_name" GIT_COMMITTER_EMAIL="$author_email" git commit --amend --no-edit --author="$author" --date="$GIT_AUTHOR_DATE"
     git rebase --continue;
     } &> /dev/null
 done
