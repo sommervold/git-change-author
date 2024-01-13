@@ -20,7 +20,7 @@ while IFS="|"; read -r commit author_name author_email; do
 done </dev/stdin
 echo $COUNT
 if [ "$COUNT" -eq "0" ]; then
-    echo "stdin is empty"
+    >&2 echo "stdin is empty"
     exit 1
 fi
 
