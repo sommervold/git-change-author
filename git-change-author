@@ -28,7 +28,12 @@ GIT_SEQUENCE_EDITOR="sed -i $SED_SCRIPT" git rebase -i --rebase-merges --root &>
 
 for (( i = 0 ; i < $COUNT ; i++ ));
 do
-    commit=$(git rev-parse --short $(cat .git/rebase-merge/stopped-sha))
+    if [ -f .git/rebase-merge/stopped-sha ]; then
+        commit=$(git rev-parse --short $(cat .git/rebase-merge/stopped-sha))
+    else
+        # Probably a merge commit
+	commit=$(git rev-parse --short $( tail -n 1 .git/rebase-merge/rewritten-list | cut -d" " -f1 ))
+    fi
     author_name="${names[$commit]}"
     author_email="${emails[$commit]}"
     author="$author_name <$author_email>"
