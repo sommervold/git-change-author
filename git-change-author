@@ -1,37 +1,40 @@
 #!/usr/bin/env bash
 
-if [ $# -ne 2 ]; then
-    >&2 echo "Usage: $0 <name> <email>"
-    >&2 echo "Feed commit hashes into stdin"
-    exit 1
-fi
-
-AUTHOR="$1 <$2>"
-AUTHOR_NAME="$1"
-AUTHOR_EMAIL="$2"
-
-let "count=0"
+COUNT=0
 SED_SCRIPT=""
-while read commit; do
+declare -A emails
+declare -A names
+
+while IFS="|"; read -r commit author_name author_email; do
     if [ "$commit" = "" ]; then
         break
     fi
-    let "count+=1"
-    COMMIT=$(git rev-parse --short $commit)
-    SED_SCRIPT="$SED_SCRIPT -e 's/^pick $COMMIT/edit $COMMIT/'"
-    SED_SCRIPT="$SED_SCRIPT -e '/^merge -C $COMMIT.*/a b'"
-done </dev/stdin
+    COUNT=$(($COUNT+1))
+    commit=$(git rev-parse --short $commit)
+    
+    emails["$commit"]="$author_email"
+    names["$commit"]="$author_name"
 
-if [ "$count" -eq "0" ]; then
+    SED_SCRIPT="$SED_SCRIPT -e 's/^pick $commit/edit $commit/'"
+    SED_SCRIPT="$SED_SCRIPT -e '/^merge -C $commit.*/a b'"
+done </dev/stdin
+echo $COUNT
+if [ "$COUNT" -eq "0" ]; then
     echo "stdin is empty"
     exit 1
 fi
 
 GIT_SEQUENCE_EDITOR="sed -i $SED_SCRIPT" git rebase -i --rebase-merges --root
-for _ in $(seq 1 $count);
+
+for (( i = 0 ; i < $COUNT ; i++ ));
 do
-    GIT_COMMITTER_NAME="$AUTHOR_NAME" GIT_COMMITTER_EMAIL="$AUTHOR_EMAIL" git commit --amend --no-edit --author="$AUTHOR"
-    git rebase --continue
+    commit=$(git rev-parse --short $(cat .git/rebase-merge/stopped-sha))
+    author_name="${names[$commit]}"
+    author_email="${emails[$commit]}"
+    author="$author_name <$author_email>"
+    echo "$author_name", "$author_email", "$author", "$commit"    
+    GIT_COMMITTER_NAME="$author_name" GIT_COMMITTER_EMAIL="$author_email" git commit --amend --no-edit --author="$author"
+    git rebase --continue;
 done
 
-echo "Author has been changed to \"$AUTHOR\" for $count commits"
+echo "Author has been changed for $count commits"
