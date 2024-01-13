@@ -25,9 +25,13 @@ if [ "$COUNT" -eq "0" ]; then
 fi
 
 GIT_SEQUENCE_EDITOR="sed -i $SED_SCRIPT" git rebase -i --rebase-merges --root &> /dev/null
-
+CHANGED_COMMITS=0
 for (( i = 0 ; i < $COUNT ; i++ ));
 do
+    if [ ! -d .git/rebase-merge ]; then
+        break
+    fi
+    ((CHANGED_COMMITS++))
     if [ -f .git/rebase-merge/stopped-sha ]; then
         commit=$(git rev-parse --short $(cat .git/rebase-merge/stopped-sha))
     else
@@ -38,9 +42,9 @@ do
     author_email="${emails[$commit]}"
     author="$author_name <$author_email>"
     {
-    GIT_COMMITTER_NAME="$author_name" GIT_COMMITTER_EMAIL="$author_email" git commit --amend --no-edit --author="$author" --date="$GIT_AUTHOR_DATE"
+    GIT_COMMITTER_NAME="$author_name" GIT_COMMITTER_EMAIL="$author_email" GIT_COMMITTER_DATE="$(git log -n 1 --format='%ad')" git commit --amend --no-edit --author="$author"
     git rebase --continue;
     } &> /dev/null
 done
 
-echo "Author has been changed for $COUNT commits"
+echo "Author has been changed for $CHANGED_COMMITS commits"
