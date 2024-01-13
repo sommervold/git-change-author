@@ -18,13 +18,13 @@ while IFS="|"; read -r commit author_name author_email; do
     SED_SCRIPT="$SED_SCRIPT -e 's/^pick $commit/edit $commit/'"
     SED_SCRIPT="$SED_SCRIPT -e '/^merge -C $commit.*/a b'"
 done </dev/stdin
-echo $COUNT
+
 if [ "$COUNT" -eq "0" ]; then
     >&2 echo "stdin is empty"
     exit 1
 fi
 
-GIT_SEQUENCE_EDITOR="sed -i $SED_SCRIPT" git rebase -i --rebase-merges --root
+GIT_SEQUENCE_EDITOR="sed -i $SED_SCRIPT" git rebase -i --rebase-merges --root &> /dev/null
 
 for (( i = 0 ; i < $COUNT ; i++ ));
 do
@@ -32,9 +32,10 @@ do
     author_name="${names[$commit]}"
     author_email="${emails[$commit]}"
     author="$author_name <$author_email>"
-    echo "$author_name", "$author_email", "$author", "$commit"    
+    {
     GIT_COMMITTER_NAME="$author_name" GIT_COMMITTER_EMAIL="$author_email" git commit --amend --no-edit --author="$author"
     git rebase --continue;
+    } &> /dev/null
 done
 
-echo "Author has been changed for $count commits"
+echo "Author has been changed for $COUNT commits"
