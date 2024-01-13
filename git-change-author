@@ -19,6 +19,7 @@ while read commit; do
     let "count+=1"
     COMMIT=$(git rev-parse --short $commit)
     SED_SCRIPT="$SED_SCRIPT -e 's/^pick $COMMIT/edit $COMMIT/'"
+    SED_SCRIPT="$SED_SCRIPT -e '/^merge -C $COMMIT.*/a b'"
 done </dev/stdin
 
 if [ "$count" -eq "0" ]; then
@@ -26,7 +27,7 @@ if [ "$count" -eq "0" ]; then
     exit 1
 fi
 
-GIT_SEQUENCE_EDITOR="sed -i $SED_SCRIPT" git rebase -i --root
+GIT_SEQUENCE_EDITOR="sed -i $SED_SCRIPT" git rebase -i --rebase-merges --root
 for _ in $(seq 1 $count);
 do
     GIT_COMMITTER_NAME="$AUTHOR_NAME" GIT_COMMITTER_EMAIL="$AUTHOR_EMAIL" git commit --amend --no-edit --author="$AUTHOR"
