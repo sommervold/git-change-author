@@ -58,4 +58,4 @@ do
 
 done
 
-echo "Author has been changed for $CHANGED_COMMITS commits"
+echo "$CHANGED_COMMITS commits has been modified"
