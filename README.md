@@ -27,4 +27,4 @@ b0c4374593324cb02cffcb428b2b2b4b18e563cf|Person 2|email2@example.com
 
 Note that `commits.txt` has to end in a single newline.
 
-If you just want to set the committer and author to be the same, you can generate a commit list with `git log --format="%H|%an|&ae"`
+If you just want to set the committer and author to be the same, you can generate a commit list with `git log --format="%H|%an|%ae"`
